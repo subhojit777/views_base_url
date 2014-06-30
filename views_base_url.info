@@ -1,0 +1,5 @@
+name = Views base url
+description = Global views field that provides site's base url
+core = 7.x
+dependencies[] = views
+files[] = includes/views/handlers/views_base_url_handler_base_url.inc
