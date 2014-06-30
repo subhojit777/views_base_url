@@ -5,8 +5,8 @@ option.
 ##### Usage:
 - Select field formatter in view, and add **Global: Base url**
 - Select **Exclude from display** option.
-- Create custom link by adding a **Global:Custom text**
-- Create link like this:
+- Create custom link by adding a **Global: Custom text**
+- Create link using replacement pattern like this:
 ```html
 <a href="[base_url]/home">My home page</a>
 ```
@@ -20,7 +20,7 @@ in database, hence it will not be cached. PHP execution through
 [eval()](http://www.php.net/manual/en/function.eval.php) is slow.
 This module eliminates this problem.
 
-Alternatives:
+##### Alternatives:
 Only module I found closest to this is
 [Views BaseURL](https://www.drupal.org/sandbox/ergonlogic/1274240), it's in
 sandbox and that too it was last modified years ago, means its not maintained.
