@@ -11,14 +11,14 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
   /**
    * Add to query.
    */
-  function query() {
+  public function query() {
     // Do nothing.
   }
 
   /**
    * Render site's base url.
    */
-  function render($values) {
+  public function render($values) {
     global $base_url;
 
     return $base_url;
