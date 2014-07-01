@@ -27,6 +27,8 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
     $options['show_link_options']['link_class'] = array('default' => '');
     $options['show_link_options']['link_title'] = array('default' => '');
     $options['show_link_options']['link_rel'] = array('default' => '');
+    $options['show_link_options']['link_fragment'] = array('default' => '');
+    $options['show_link_options']['link_query'] = array('default' => '');
     $options['show_link_options']['link_target'] = array('default' => '');
 
     return $options;
@@ -89,6 +91,20 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
       '#default_value' => $this->options['show_link_options']['link_rel'],
     );
 
+    $form['show_link_options']['link_fragment'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Fragment'),
+      '#description' => t('Provide the ID with which you want to create fragment link.'),
+      '#default_value' => $this->options['show_link_options']['link_fragment'],
+    );
+
+    $form['show_link_options']['link_query'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link query'),
+      '#description' => t('Attach queries to the link. If there are multiple queries separate them using a space. For eg: %example1 OR %example2', array('%example1' => 'destination=node/add/page', '%example2' => 'destination=node/add/page q=some/page')),
+      '#default_value' => $this->options['show_link_options']['link_query'],
+    );
+
     $form['show_link_options']['link_target'] = array(
       '#type' => 'textfield',
       '#title' => t('Link target'),
@@ -103,10 +119,13 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
   public function render($values) {
     global $base_url;
     $output = '';
+    $link_query = array();
 
     if ($this->options['show_link']) {
+      // Link path.
       $link_path = empty($this->options['show_link_options']['link_path']) ? $base_url : $base_url . '/' . $this->options['show_link_options']['link_path'];
 
+      // Link text.
       if (empty($this->options['show_link_options']['link_text'])) {
         if (empty($this->options['show_link_options']['link_path'])) {
           $link_text = $base_url;
@@ -119,8 +138,20 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
         $link_text = $this->options['show_link_options']['link_text'];
       }
 
+      // Link class.
       $link_class = empty($this->options['show_link_options']['link_class']) ? array() : explode(' ', $this->options['show_link_options']['link_class']);
 
+      // Link query.
+      if (!empty($this->options['show_link_options']['link_query'])) {
+        $queries = explode(' ', $this->options['show_link_options']['link_query']);
+
+        foreach ($queries as $query) {
+          $param = explode('=', $query);
+          $link_query[$param[0]] = $param[1];
+        }
+      }
+
+      // Create link with options.
       $output = l($link_text, $link_path, array(
         'attributes' => array(
           'class' => $link_class,
@@ -128,6 +159,8 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
           'rel' => $this->options['show_link_options']['link_rel'],
           'target' => $this->options['show_link_options']['link_target'],
         ),
+        'fragment' => $this->options['show_link_options']['link_fragment'],
+        'query' => $link_query,
       ));
     }
     else {
