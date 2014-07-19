@@ -111,6 +111,55 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
       '#description' => t('Target attribute for this link.'),
       '#default_value' => $this->options['show_link_options']['link_target'],
     );
+
+    // Get a list of the available fields and arguments for token replacement.
+    $options = array();
+    foreach ($this->view->display_handler->get_handlers('field') as $field => $handler) {
+      $options[t('Fields')]["[$field]"] = $handler->ui_name();
+      // We only use fields up to (and including) this one.
+      if ($field == $this->options['id']) {
+        break;
+      }
+    }
+    $count = 0; // This lets us prepare the key as we want it printed.
+    foreach ($this->view->display_handler->get_handlers('argument') as $arg => $handler) {
+      $options[t('Arguments')]['%' . ++$count] = t('@argument title', array('@argument' => $handler->ui_name()));
+      $options[t('Arguments')]['!' . $count] = t('@argument input', array('@argument' => $handler->ui_name()));
+    }
+
+    $this->document_self_tokens($options[t('Fields')]);
+
+    // Default text.
+    $output = t('<p>You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.</p>');
+    // We have some options, so make a list.
+    if (!empty($options)) {
+      $output = t('<p>The following tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.
+If you would like to have the characters \'[\' and \']\' please use the html entity codes \'%5B\' or  \'%5D\' or they will get replaced with empty space.</p>');
+      foreach (array_keys($options) as $type) {
+        if (!empty($options[$type])) {
+          $items = array();
+          foreach ($options[$type] as $key => $value) {
+            $items[] = $key . ' == ' . check_plain($value);
+          }
+          $output .= theme('item_list',
+            array(
+              'items' => $items,
+              'type' => $type
+            ));
+        }
+      }
+    }
+    // This construct uses 'hidden' and not markup because process doesn't
+    // run. It also has an extra div because the dependency wants to hide
+    // the parent in situations like this, so we need a second div to
+    // make this work.
+    $form['show_link_options']['help'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Replacement patterns'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => $output,
+    );
   }
 
   /**
@@ -167,6 +216,8 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
       $output = $base_url;
     }
 
-    return $output;
+    // Replace token with values and return it as output.
+    $tokens = $this->get_render_tokens();
+    return str_replace(array_keys($tokens), $tokens, $output);
   }
 }
