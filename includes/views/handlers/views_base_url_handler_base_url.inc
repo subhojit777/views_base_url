@@ -121,7 +121,10 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
         break;
       }
     }
-    $count = 0; // This lets us prepare the key as we want it printed.
+
+    // This lets us prepare the key as we want it printed.
+    $count = 0;
+
     foreach ($this->view->display_handler->get_handlers('argument') as $arg => $handler) {
       $options[t('Arguments')]['%' . ++$count] = t('@argument title', array('@argument' => $handler->ui_name()));
       $options[t('Arguments')]['!' . $count] = t('@argument input', array('@argument' => $handler->ui_name()));
@@ -144,7 +147,7 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
           $output .= theme('item_list',
             array(
               'items' => $items,
-              'type' => $type
+              'type' => $type,
             ));
         }
       }
