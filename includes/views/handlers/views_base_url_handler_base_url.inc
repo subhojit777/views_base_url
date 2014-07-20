@@ -11,7 +11,7 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
   /**
    * Do nothing here. Just required to override the parent method.
    */
-  public function query() { }
+  public function query() {}
 
   /**
    * More base url options.
