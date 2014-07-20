@@ -9,11 +9,9 @@
 
 class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
   /**
-   * Add to query.
+   * Do nothing here. Just required to override the parent method.
    */
-  public function query() {
-    // Do nothing.
-  }
+  public function query() { }
 
   /**
    * More base url options.
@@ -125,7 +123,7 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
     // This lets us prepare the key as we want it printed.
     $count = 0;
 
-    foreach ($this->view->display_handler->get_handlers('argument') as $arg => $handler) {
+    foreach ($this->view->display_handler->get_handlers('argument') as $handler) {
       $options[t('Arguments')]['%' . ++$count] = t('@argument title', array('@argument' => $handler->ui_name()));
       $options[t('Arguments')]['!' . $count] = t('@argument input', array('@argument' => $handler->ui_name()));
     }
@@ -133,11 +131,11 @@ class ViewsBaseUrlHandlerBaseUrl extends views_handler_field {
     $this->document_self_tokens($options[t('Fields')]);
 
     // Default text.
-    $output = t('<p>You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.</p>');
+    $output = '<p>' . t('You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.') . '</p>';
     // We have some options, so make a list.
     if (!empty($options)) {
-      $output = t('<p>The following tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.
-If you would like to have the characters \'[\' and \']\' please use the html entity codes \'%5B\' or  \'%5D\' or they will get replaced with empty space.</p>');
+      $output = '<p>' . t('The following tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.
+If you would like to have the characters \'[\' and \']\' please use the html entity codes \'%5B\' or  \'%5D\' or they will get replaced with empty space.') . '</p>';
       foreach (array_keys($options) as $type) {
         if (!empty($options[$type])) {
           $items = array();
@@ -220,7 +218,7 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
     }
 
     // Replace token with values and return it as output.
-    $tokens = $this->get_render_tokens();
+    $tokens = $this->get_render_tokens($output);
     return str_replace(array_keys($tokens), $tokens, $output);
   }
 }
