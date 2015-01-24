@@ -170,18 +170,24 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
     global $base_url;
     $output = '';
     $link_query = array();
+    $tokens = $this->get_render_tokens($output);
 
     if ($this->options['show_link']) {
+      if (!empty($this->options['show_link_options']['link_path'])) {
+        $aliased_path = str_replace(array_keys($tokens), $tokens, $this->options['show_link_options']['link_path']);
+        $aliased_path = drupal_get_path_alias($aliased_path);
+      }
+
       // Link path.
-      $link_path = empty($this->options['show_link_options']['link_path']) ? $base_url : $base_url . '/' . $this->options['show_link_options']['link_path'];
+      $link_path = empty($aliased_path) ? $base_url : $base_url . '/' . $aliased_path;
 
       // Link text.
       if (empty($this->options['show_link_options']['link_text'])) {
-        if (empty($this->options['show_link_options']['link_path'])) {
+        if (empty($aliased_path)) {
           $link_text = $base_url;
         }
         else {
-          $link_text = $base_url . '/' . $this->options['show_link_options']['link_path'];
+          $link_text = $base_url . '/' . $aliased_path;
         }
       }
       else {
@@ -218,7 +224,6 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
     }
 
     // Replace token with values and return it as output.
-    $tokens = $this->get_render_tokens($output);
     return str_replace(array_keys($tokens), $tokens, $output);
   }
 }
