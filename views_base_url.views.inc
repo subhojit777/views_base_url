@@ -13,7 +13,7 @@ function views_base_url_views_data_alter(&$data) {
     'title' => t('Base url'),
     'help' => t("Site's base url"),
     'field' => array(
-      'handler' => 'ViewsBaseUrlHandlerBaseUrl',
+      'id' => 'ViewsBaseUrlHandlerBaseUrl',
     ),
   );
 }
