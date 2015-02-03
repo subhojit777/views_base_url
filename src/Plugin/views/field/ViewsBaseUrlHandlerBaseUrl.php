@@ -187,7 +187,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     if ($this->options['show_link']) {
       if (!empty($this->options['show_link_options']['link_path'])) {
         $aliased_path = str_replace(array_keys($tokens), $tokens, $this->options['show_link_options']['link_path']);
-        // @todo $aliased_path = \Drupal::service('path.alias_manager')->getPathAlias($aliased_path);
+        $aliased_path = \Drupal::service('path.alias_manager')->getAliasByPath($aliased_path);
       }
 
       // Link path.
