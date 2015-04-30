@@ -173,6 +173,8 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
     $tokens = $this->get_render_tokens($output);
 
     if ($this->options['show_link']) {
+      global $language;
+
       if (!empty($this->options['show_link_options']['link_path'])) {
         $aliased_path = str_replace(array_keys($tokens), $tokens, $this->options['show_link_options']['link_path']);
         $aliased_path = drupal_get_path_alias($aliased_path);
@@ -217,6 +219,7 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
         ),
         'fragment' => $this->options['show_link_options']['link_fragment'],
         'query' => $link_query,
+        'language' => $language,
       ));
     }
     else {
