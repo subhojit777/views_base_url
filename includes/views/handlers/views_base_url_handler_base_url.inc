@@ -220,6 +220,7 @@ If you would like to have the characters \'[\' and \']\' please use the html ent
         'fragment' => $this->options['show_link_options']['link_fragment'],
         'query' => $link_query,
         'language' => $language,
+        'html' => TRUE,
       ));
     }
     else {

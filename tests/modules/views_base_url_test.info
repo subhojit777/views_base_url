@@ -1,0 +1,5 @@
+name = Views base url test
+description = Test cases for views base url module
+core = 7.x
+dependencies[] = views_base_url
+hidden = true

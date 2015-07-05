@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Views base url test functions.
+ *
+ * @ingroup views_base_url
+ */
+class SimplenewsTestCase extends DrupalWebTestCase {
+
+  /**
+   * Implements getInfo().
+   */
+  static function getInfo() {
+    return array(
+      'name' => t('Views base url tests'),
+      'description' => t('Test views base url field'),
+      'group' => t('Views base url'),
+    );
+  }
+
+  /**
+   * Implements getInfo().
+   */
+  public function setUp() {
+    parent::setUp(array('views_base_url_test'));
+    $this->adminUser = $this->drupalCreateUser(array(
+      'create article content',
+    ));
+    $this->drupalLogin($this->adminUser);
+
+    // Create 10 nodes.
+    $this->nodes = array();
+    for ($i = 1; $i <=10; $i++) {
+      $title = $this->randomName();
+      $image = current($this->drupalGetTestFiles('image'));
+      $edit = array(
+        'title' => $title,
+        'files[field_image_und_0]' => drupal_realpath($image->uri),
+      );
+
+      $this->drupalPost('node/add/article', $edit, t('Save'));
+      $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
+      $path = array(
+        'source' => 'node/' . $this->nodes[$i]->nid,
+        'alias' => "content/$title",
+      );
+      path_save($path);
+    }
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Test views base url field.
+   */
+  function testViewsBaseUrlField() {
+    global $base_url;
+
+    $this->drupalGet('views-base-url-test');
+    $this->assertResponse(200);
+
+    // Check whether there are ten rows.
+    $rows = $this->xpath('//div[contains(@class,"view-views-base-url-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($rows), 10, t('There are 10 rows'));
+
+    // We check for at least one views result that link is properly rendered as
+    // image.
+    $node = $this->nodes[1];
+    $image = theme('image', array(
+      'path' => $node->field_image['und'][0]['uri'],
+      'width' => $node->field_image['und'][0]['width'],
+      'height' => $node->field_image['und'][0]['height'],
+      'alt' => $node->field_image['und'][0]['alt'],
+    ));
+    $link = l($image, $base_url . '/' . drupal_get_path_alias('node/' . $node->nid), array(
+      'attributes' => array(
+        'class' => 'views-base-url-test',
+        'title' => $node->title,
+        'rel' => 'rel-attribute',
+        'target' => '_blank',
+      ),
+      'fragment' => 'new',
+      'query' => array(
+        'destination' => 'node',
+      ),
+      'html' => TRUE,
+    ));
+    $this->assertRaw($link, t('Views base url rendered as link image'));
+  }
+
+}
