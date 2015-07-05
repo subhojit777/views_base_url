@@ -6,7 +6,8 @@
  *
  * @ingroup views_base_url
  */
-class SimplenewsTestCase extends DrupalWebTestCase {
+
+class ViewsBaseUrlTestCase extends DrupalWebTestCase {
 
   /**
    * Implements getInfo().
@@ -31,7 +32,7 @@ class SimplenewsTestCase extends DrupalWebTestCase {
 
     // Create 10 nodes.
     $this->nodes = array();
-    for ($i = 1; $i <=10; $i++) {
+    for ($i = 1; $i <= 10; $i++) {
       $title = $this->randomName();
       $image = current($this->drupalGetTestFiles('image'));
       $edit = array(
@@ -68,10 +69,10 @@ class SimplenewsTestCase extends DrupalWebTestCase {
     // image.
     $node = $this->nodes[1];
     $image = theme('image', array(
-      'path' => $node->field_image['und'][0]['uri'],
-      'width' => $node->field_image['und'][0]['width'],
-      'height' => $node->field_image['und'][0]['height'],
-      'alt' => $node->field_image['und'][0]['alt'],
+      'path' => $node->field_image[LANGUAGE_NONE][0]['uri'],
+      'width' => $node->field_image[LANGUAGE_NONE][0]['width'],
+      'height' => $node->field_image[LANGUAGE_NONE][0]['height'],
+      'alt' => $node->field_image[LANGUAGE_NONE][0]['alt'],
     ));
     $link = l($image, $base_url . '/' . drupal_get_path_alias('node/' . $node->nid), array(
       'attributes' => array(
