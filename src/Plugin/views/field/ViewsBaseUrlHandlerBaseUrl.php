@@ -135,7 +135,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     // This lets us prepare the key as we want it printed.
     $count = 0;
 
-    foreach ($this->view->display_handler->getHandlers('argument') as $arg => $handler) {
+    foreach ($this->view->display_handler->getHandlers('argument') as $handler) {
       $options[$this->t('Arguments')]['%' . ++$count] = $this->t('@argument title', array('@argument' => $handler->adminLabel()));
       $options[$this->t('Arguments')]['!' . $count] = $this->t('@argument input', array('@argument' => $handler->adminLabel()));
     }
@@ -151,7 +151,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
         if (!empty($options[$type])) {
           $items = array();
           foreach ($options[$type] as $key => $value) {
-           $items[] = $key . ' == ' . $value;
+            $items[] = $key . ' == ' . $value;
           }
           $item_list = array(
             '#theme' => 'item_list',
