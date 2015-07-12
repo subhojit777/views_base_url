@@ -9,9 +9,6 @@
 
 class ViewsBaseUrlTestCase extends DrupalWebTestCase {
 
-  /**
-   * Implements getInfo().
-   */
   static function getInfo() {
     return array(
       'name' => t('Views base url tests'),
@@ -20,35 +17,33 @@ class ViewsBaseUrlTestCase extends DrupalWebTestCase {
     );
   }
 
-  /**
-   * Implements getInfo().
-   */
   public function setUp() {
-    parent::setUp(array('views_base_url_test'));
+    parent::setUp('views_base_url_test');
     $this->adminUser = $this->drupalCreateUser(array(
       'create article content',
     ));
-    $this->drupalLogin($this->adminUser);
 
     // Create 10 nodes.
+    $this->drupalLogin($this->adminUser);
     $this->nodes = array();
     for ($i = 1; $i <= 10; $i++) {
+      // Create node.
       $title = $this->randomName();
       $image = current($this->drupalGetTestFiles('image'));
       $edit = array(
         'title' => $title,
         'files[field_image_und_0]' => drupal_realpath($image->uri),
       );
-
       $this->drupalPost('node/add/article', $edit, t('Save'));
       $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
+
+      // Create path alias.
       $path = array(
         'source' => 'node/' . $this->nodes[$i]->nid,
         'alias' => "content/$title",
       );
       path_save($path);
     }
-
     $this->drupalLogout();
   }
 
@@ -88,6 +83,95 @@ class ViewsBaseUrlTestCase extends DrupalWebTestCase {
       'html' => TRUE,
     ));
     $this->assertRaw($link, t('Views base url rendered as link image'));
+  }
+
+}
+
+class ViewsBaseUrlMultilingualTestCase extends DrupalWebTestCase {
+
+  static function getInfo() {
+    return array(
+      'name' => t('Views base url multilingual tests'),
+      'description' => t('Test views base url field in multilingual environment'),
+      'group' => t('Views base url'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('views_base_url_test', 'locale', 'translation');
+    $this->adminUser = $this->drupalCreateUser(array(
+      'create article content',
+      'administer languages',
+      'administer blocks',
+    ));
+    $language_code = 'de';
+
+    $this->drupalLogin($this->adminUser);
+
+    // Add languages.
+    $edit = array();
+    $edit['langcode'] = $language_code;
+    $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+    // Make sure we are not using a stale list.
+    drupal_static_reset('language_list');
+    $languages = language_list('language');
+    $this->assertTrue(array_key_exists($language_code, $languages), 'Language was installed successfully.');
+
+    if (array_key_exists($language_code, $languages)) {
+      $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), 'Language has been created.');
+    }
+
+    // Enable the language switcher block.
+    $language_type = LANGUAGE_TYPE_INTERFACE;
+    $edit = array("blocks[locale_$language_type][region]" => 'sidebar_first');
+    $this->drupalPost('admin/structure/block', $edit, t('Save blocks'));
+
+    // Enable URL language detection and selection to make the language switcher
+    // block appear.
+    $edit = array('language[enabled][locale-url]' => TRUE);
+    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $this->assertRaw(t('Language negotiation configuration saved.'), 'URL language detection enabled.');
+    drupal_static_reset('locale_url_outbound_alter');
+
+    $this->nodes = array();
+    for ($i = 1; $i <= 10; $i++) {
+      // Create node.
+      $title = $this->randomName();
+      $image = current($this->drupalGetTestFiles('image'));
+      $edit = array(
+        'title' => $title,
+        'files[field_image_und_0]' => drupal_realpath($image->uri),
+      );
+      $this->drupalPost('node/add/article', $edit, t('Save'));
+      $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
+
+      // Create path alias.
+      $path = array(
+        'source' => 'node/' . $this->nodes[$i]->nid,
+        'alias' => "content/$title",
+      );
+      path_save($path);
+    }
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Test whether the links are created based on site's default language.
+   */
+  function testLanguageBasedUrl() {
+    $languages = language_list();
+
+    $this->drupalGet('views-base-url-test');
+    $this->assertResponse(200, t('Page is accessible when language not provided'));
+    $this->assertLinkByHref($languages['de']->prefix . '/views-base-url-test', 0, t('Link available to switch to another language of the page'));
+    $this->drupalGet('views-base-url-test', array('language' => $languages['en']));
+    $this->assertResponse(200, t('Page is accessible in site\'s default language'));
+    $this->assertLinkByHref($languages['de']->prefix . '/views-base-url-test', 0, t('Link available to switch to another language of the page'));
+    $this->drupalGet('views-base-url-test', array('language' => $languages['de']));
+    $this->assertResponse(200, t('Page is accessible in another language'));
+    $this->assertLinkByHref($languages['en']->prefix . '/views-base-url-test', 0, t('Link available to switch to another language of the page'));
   }
 
 }

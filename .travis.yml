@@ -38,7 +38,7 @@ before_script:
   - mysql -e 'create database views_base_url'
   - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes core-quick-drupal --profile=testing --no-server --db-url=mysql://root:@127.0.0.1/views_base_url --enable=simpletest views_base_url_testing
 
-  # reference and enable travis_ci_drupal_module_example in build site
+  # reference and enable views_base_url in build site
   - ln -s $(readlink -e $(cd -)) views_base_url_testing/drupal/sites/all/modules/views_base_url
   - cd views_base_url_testing/drupal
   - drush --yes pm-enable views_base_url_test
@@ -47,4 +47,4 @@ before_script:
   - drush runserver 127.0.0.1:8080 &
   - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
 
-script: drush test-run 'Views base url' --uri=http://127.0.0.1:8080
+script: drush test-run 'Views base url' --full --uri=http://127.0.0.1:8080

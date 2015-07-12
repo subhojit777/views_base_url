@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/subhojit777/views_base_url.svg?branch=7.x-1.x)](https://travis-ci.org/subhojit777/views_base_url)
+
 This module provides a site base URL token in Views. The main purpose of this
 module is to create a link with absolute path through **Global:Custom text**
 option.
