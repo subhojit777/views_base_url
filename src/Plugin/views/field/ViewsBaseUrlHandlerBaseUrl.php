@@ -11,7 +11,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\Component\Utility\SafeMarkup;
-use Drupal\Component\Utility\String;
 use Drupal\Core\Url;
 
 /**
@@ -35,14 +34,16 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     $options = parent::defineOptions();
 
     $options['show_link'] = array('default' => FALSE);
-    $options['show_link_options']['link_path'] = array('default' => '');
-    $options['show_link_options']['link_text'] = array('default' => '');
-    $options['show_link_options']['link_class'] = array('default' => '');
-    $options['show_link_options']['link_title'] = array('default' => '');
-    $options['show_link_options']['link_rel'] = array('default' => '');
-    $options['show_link_options']['link_fragment'] = array('default' => '');
-    $options['show_link_options']['link_query'] = array('default' => '');
-    $options['show_link_options']['link_target'] = array('default' => '');
+    $options['show_link_options']['contains'] = array(
+      'link_path' => array('default' => ''),
+      'link_text' => array('default' => ''),
+      'link_class' => array('default' => ''),
+      'link_title' => array('default' => ''),
+      'link_rel' => array('default' => ''),
+      'link_fragment' => array('default' => ''),
+      'link_query' => array('default' => ''),
+      'link_target' => array('default' => ''),
+    );
 
     return $options;
   }
@@ -124,29 +125,34 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     );
 
     // Get a list of the available fields and arguments for token replacement.
-    $options = array();
+
+    // Setup the tokens for fields.
     $previous = $this->getPreviousFieldLabels();
     foreach ($previous as $id => $label) {
-      $options[$this->t('Fields')]["[$id]"] = substr(strrchr($label, ":"), 2);
+      $options[t('Fields')]["{{ $id }}"] = substr(strrchr($label, ":"), 2 );
     }
     // Add the field to the list of options.
-    $options[$this->t('Fields')]["[{$this->options['id']}]"] = substr(strrchr($this->adminLabel(), ":"), 2);
+    $options[t('Fields')]["{{ {$this->options['id']} }}"] = substr(strrchr($this->adminLabel(), ":"), 2 );
 
-    // This lets us prepare the key as we want it printed.
-    $count = 0;
-
-    foreach ($this->view->display_handler->getHandlers('argument') as $handler) {
-      $options[$this->t('Arguments')]['%' . ++$count] = $this->t('@argument title', array('@argument' => $handler->adminLabel()));
-      $options[$this->t('Arguments')]['!' . $count] = $this->t('@argument input', array('@argument' => $handler->adminLabel()));
+    $count = 0; // This lets us prepare the key as we want it printed.
+    foreach ($this->view->display_handler->getHandlers('argument') as $arg => $handler) {
+      $options[t('Arguments')]['%' . ++$count] = $this->t('@argument title', array('@argument' => $handler->adminLabel()));
+      $options[t('Arguments')]['!' . $count] = $this->t('@argument input', array('@argument' => $handler->adminLabel()));
     }
 
     $this->documentSelfTokens($options[t('Fields')]);
 
     // Default text.
-    $output = '<p>' . $this->t('You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.') . '</p>';
+
+    $output = [];
+    $output[] = [
+      '#markup' => '<p>' . $this->t('You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.') . '</p>',
+    ];
     // We have some options, so make a list.
     if (!empty($options)) {
-      $output = '<p>' . $this->t('The following Twig replacement tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.') . '</p>';
+      $output[] = [
+        '#markup' => '<p>' . $this->t("The following replacement tokens are available for this field. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.") . '</p>',
+      ];
       foreach (array_keys($options) as $type) {
         if (!empty($options[$type])) {
           $items = array();
@@ -158,7 +164,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
             '#items' => $items,
             '#list_type' => $type,
           );
-          $output .= $this->getRenderer()->render($item_list);
+          $output[] = $item_list;
         }
       }
     }
@@ -169,7 +175,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     $form['show_link_options']['help'] = array(
       '#type' => 'details',
       '#title' => $this->t('Replacement patterns'),
-      '#value' => SafeMarkup::set($output),
+      '#value' => $output,
     );
 
     parent::buildOptionsForm($form, $form_state);
@@ -180,14 +186,15 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
    */
   public function render(ResultRow $values) {
     global $base_url;
+    global $language;
     $output = '';
     $link_query = array();
     $tokens = $this->getRenderTokens($output);
 
     if ($this->options['show_link']) {
       if (!empty($this->options['show_link_options']['link_path'])) {
-        $aliased_path = str_replace(array_keys($tokens), $tokens, $this->options['show_link_options']['link_path']);
-        $aliased_path = \Drupal::service('path.alias_manager')->getAliasByPath($aliased_path);
+        $aliased_path = $this->viewsTokenReplace($this->options['show_link_options']['link_path'], $tokens);
+        $aliased_path = \Drupal::service('path.alias_manager')->getAliasByPath("/$aliased_path");
       }
 
       // Link path.
@@ -196,14 +203,14 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
       // Link text.
       if (empty($this->options['show_link_options']['link_text'])) {
         if (empty($aliased_path)) {
-          $link_text = String::checkPlain($base_url);
+          $link_text = SafeMarkup::checkPlain($base_url);
         }
         else {
-          $link_text = String::checkPlain($base_url . '/' . $aliased_path);
+          $link_text = SafeMarkup::checkPlain($base_url . '/' . $aliased_path);
         }
       }
       else {
-        $link_text = String::checkPlain($this->options['show_link_options']['link_text']);
+        $link_text = SafeMarkup::checkPlain($this->options['show_link_options']['link_text']);
       }
 
       // Link class.
@@ -229,6 +236,8 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
         ),
         'fragment' => $this->options['show_link_options']['link_fragment'],
         'query' => $link_query,
+        'language' => $language,
+        'html' => TRUE,
       ));
       $output = \Drupal::l($link_text, $url);
     }
@@ -237,7 +246,7 @@ class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
     }
 
     // Replace token with values and return it as output.
-    return str_replace(array_keys($tokens), $tokens, $output);
+    return $this->viewsTokenReplace($output, $tokens);
   }
 
 }
