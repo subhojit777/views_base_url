@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Definition of Drupal\views_base_url\Plugin\views\field\ViewsBaseUrlHandlerBaseUrl.
+ * Definition of Drupal\views_base_url\Plugin\views\field\BaseUrl.
  */
 
 namespace Drupal\views_base_url\Plugin\views\field;
@@ -18,14 +18,9 @@ use Drupal\Core\Url;
  *
  * @ingroup views_field_handlers
  *
- * @ViewsField("ViewsBaseUrlHandlerBaseUrl")
+ * @ViewsField("base_url")
  */
-class ViewsBaseUrlHandlerBaseUrl extends FieldPluginBase {
-
-  /**
-   * {@inheritdoc}
-   */
-  public function query() {}
+class BaseUrl extends FieldPluginBase {
 
   /**
    * {@inheritdoc}

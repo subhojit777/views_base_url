@@ -21,7 +21,7 @@ views.field.base_url:
           type: string
           label: 'Link class'
         link_title:
-          type: string
+          type: label
           label: 'Link title'
         link_rel:
           type: string

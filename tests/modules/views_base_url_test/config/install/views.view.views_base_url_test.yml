@@ -317,7 +317,7 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          show_link: 1
+          show_link: true
           show_link_options:
             link_path: 'node/{{ nid }}'
             link_text: '{{ field_image }}'
@@ -327,7 +327,7 @@ display:
             link_fragment: new
             link_query: destination=node
             link_target: _blank
-          plugin_id: ViewsBaseUrlHandlerBaseUrl
+          plugin_id: base_url
       filters:
         status:
           value: true
