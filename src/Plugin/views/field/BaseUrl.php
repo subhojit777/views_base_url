@@ -25,6 +25,11 @@ class BaseUrl extends FieldPluginBase {
   /**
    * {@inheritdoc}
    */
+  public function query() {}
+
+  /**
+   * {@inheritdoc}
+   */
   protected function defineOptions() {
     $options = parent::defineOptions();
 
@@ -232,7 +237,6 @@ class BaseUrl extends FieldPluginBase {
         'fragment' => $this->options['show_link_options']['link_fragment'],
         'query' => $link_query,
         'language' => $language,
-        'html' => TRUE,
       ));
       $output = \Drupal::l($link_text, $url);
     }

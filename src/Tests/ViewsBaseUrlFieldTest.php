@@ -9,6 +9,9 @@ namespace Drupal\views_base_url\Tests;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\simpletest\WebTestBase;
+use Drupal\Component\Utility\Random;
+use Drupal\Core\Url;
+use Drupal\Component\Utility\SafeMarkup;
 
 /**
  * Basic test for views base url.
@@ -40,39 +43,43 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
    */
   protected $profile = 'standard';
 
-  /*public function setUp() {
+  public function setUp() {
     parent::setUp();
     $this->adminUser = $this->drupalCreateUser(array(
       'create article content',
     ));
-  }*/
+  }
 
   /**
    * Test views base url field.
    */
   function testViewsBaseUrlField() {
-    /*global $base_url;
+    global $base_url;
+    $random = new Random();
+    /** @var \Drupal\Core\Render\RendererInterface $renderer */
+    $renderer = $this->container->get('renderer');
 
     // Create 10 nodes.
     $this->drupalLogin($this->adminUser);
     $this->nodes = array();
     for ($i = 1; $i <= 10; $i++) {
       // Create node.
-      $title = $this->randomName();
+      $title = $random->name();
       $image = current($this->drupalGetTestFiles('image'));
       $edit = array(
-        'title' => $title,
-        'files[field_image_und_0]' => drupal_realpath($image->uri),
+        'title[0][value]' => $title,
+        'files[field_image_0]' => drupal_realpath($image->uri),
       );
-      $this->drupalPost('node/add/article', $edit, t('Save'));
+      $this->drupalPostForm('node/add/article', $edit, t('Save'));
+      $this->drupalPostForm(NULL, array('field_image[0][alt]' => $title), t('Save'));
       $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
 
       // Create path alias.
       $path = array(
-        'source' => 'node/' . $this->nodes[$i]->nid,
+        'source' => 'node/' . $this->nodes[$i]->id(),
         'alias' => "content/$title",
       );
-      //path_save($path);
+      \Drupal::service('path.alias_storage')->save('/node/' . $this->nodes[$i]->id(), "/content/$title");
     }
     $this->drupalLogout();
 
@@ -86,16 +93,22 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
     // We check for at least one views result that link is properly rendered as
     // image.
     $node = $this->nodes[1];
-    $image = theme('image', array(
-      'path' => $node->field_image[LANGUAGE_NONE][0]['uri'],
-      'width' => $node->field_image[LANGUAGE_NONE][0]['width'],
-      'height' => $node->field_image[LANGUAGE_NONE][0]['height'],
-      'alt' => $node->field_image[LANGUAGE_NONE][0]['alt'],
-    ));
-    $link = l($image, $base_url . '/' . drupal_get_path_alias('node/' . $node->nid), array(
+    $field = $node->get('field_image');
+    $file = $field->entity;
+    $value = $field->getValue();
+    $image = array(
+      '#theme' => 'image',
+      '#uri' => $file->getFileUri(),
+      '#alt' => $value[0]['alt'],
+      '#attributes' => array(
+        'width' => $value[0]['width'],
+        'height' => $value[0]['height'],
+      ),
+    );
+    $url = Url::fromUri($base_url . '/' . \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $node->id()), array(
       'attributes' => array(
         'class' => 'views-base-url-test',
-        'title' => $node->title,
+        'title' => $node->getTitle(),
         'rel' => 'rel-attribute',
         'target' => '_blank',
       ),
@@ -103,9 +116,10 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
       'query' => array(
         'destination' => 'node',
       ),
-      'html' => TRUE,
     ));
-    $this->assertRaw($link, t('Views base url rendered as link image'));*/
+    $link = \Drupal::l(SafeMarkup::format(str_replace("\n", NULL, $renderer->renderRoot($image))), $url);
+    $this->verbose($link);
+    $this->assertRaw($link, t('Views base url rendered as link image'));
   }
 
 }
