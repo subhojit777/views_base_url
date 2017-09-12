@@ -1,17 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_base_url\Tests\ViewsBaseUrlTest.
- */
-
 namespace Drupal\views_base_url\Tests;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\simpletest\WebTestBase;
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Url;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 
 /**
  * Basic test for views base url.
@@ -22,6 +16,8 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
 
   /**
    * A user with various administrative privileges.
+   *
+   * @var \Drupal\user\UserInterface
    */
   protected $adminUser;
 
@@ -30,9 +26,9 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
    *
    * @var array
    */
-  static public $modules = array(
+  public static $modules = [
     'views_base_url_test',
-  );
+  ];
 
   /**
    * The installation profile to use with this test.
@@ -43,17 +39,20 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
    */
   protected $profile = 'standard';
 
+  /**
+   * {@inheritdoc}
+   */
   public function setUp() {
     parent::setUp();
-    $this->adminUser = $this->drupalCreateUser(array(
+    $this->adminUser = $this->drupalCreateUser([
       'create article content',
-    ));
+    ]);
   }
 
   /**
    * Test views base url field.
    */
-  function testViewsBaseUrlField() {
+  public function testViewsBaseUrlField() {
     global $base_url;
     $random = new Random();
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
@@ -61,24 +60,24 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
 
     // Create 10 nodes.
     $this->drupalLogin($this->adminUser);
-    $this->nodes = array();
+    $this->nodes = [];
     for ($i = 1; $i <= 10; $i++) {
       // Create node.
       $title = $random->name();
       $image = current($this->drupalGetTestFiles('image'));
-      $edit = array(
+      $edit = [
         'title[0][value]' => $title,
         'files[field_image_0]' => drupal_realpath($image->uri),
-      );
+      ];
       $this->drupalPostForm('node/add/article', $edit, t('Save'));
-      $this->drupalPostForm(NULL, array('field_image[0][alt]' => $title), t('Save'));
+      $this->drupalPostForm(NULL, ['field_image[0][alt]' => $title], t('Save'));
       $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
 
       // Create path alias.
-      $path = array(
+      $path = [
         'source' => 'node/' . $this->nodes[$i]->id(),
         'alias' => "content/$title",
-      );
+      ];
       \Drupal::service('path.alias_storage')->save('/node/' . $this->nodes[$i]->id(), "/content/$title");
     }
     $this->drupalLogout();
@@ -96,28 +95,30 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
     $field = $node->get('field_image');
     $file = $field->entity;
     $value = $field->getValue();
-    $image = array(
+    $image = [
       '#theme' => 'image',
       '#uri' => $file->getFileUri(),
       '#alt' => $value[0]['alt'],
-      '#attributes' => array(
+      '#attributes' => [
         'width' => $value[0]['width'],
         'height' => $value[0]['height'],
-      ),
-    );
-    $url = Url::fromUri($base_url . '/' . \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $node->id()), array(
-      'attributes' => array(
+      ],
+    ];
+    $url = Url::fromUri($base_url . '/' . \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $node->id()), [
+      'attributes' => [
         'class' => 'views-base-url-test',
         'title' => $node->getTitle(),
         'rel' => 'rel-attribute',
         'target' => '_blank',
-      ),
+      ],
       'fragment' => 'new',
-      'query' => array(
+      'query' => [
         'destination' => 'node',
-      ),
-    ));
-    $link = \Drupal::l(SafeMarkup::format(str_replace("\n", NULL, $renderer->renderRoot($image))), $url);
+      ],
+    ]);
+    $link = \Drupal::l(new FormattableMarkup(":image", [
+      ':image' => str_replace("\n", NULL, $renderer->renderRoot($image)),
+    ]), $url);
     $this->verbose($link);
     $this->assertRaw($link, t('Views base url rendered as link image'));
   }
