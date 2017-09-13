@@ -5,8 +5,8 @@ namespace Drupal\views_base_url\Plugin\views\field;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\ResultRow;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Url;
+use Drupal\Core\Link;
 
 /**
  * A handler to output site's base url.
@@ -152,19 +152,25 @@ class BaseUrl extends FieldPluginBase {
       }
 
       // Link path.
-      $link_path = empty($aliased_path) ? $base_url : $base_url . '/' . $aliased_path;
+      $link_path = empty($aliased_path) ? $base_url : "$base_url/$aliased_path";
 
       // Link text.
       if (empty($this->options['show_link_options']['link_text'])) {
         if (empty($aliased_path)) {
-          $link_text = SafeMarkup::checkPlain($base_url);
+          $link_text = [
+            '#plain_text' => $base_url,
+          ];
         }
         else {
-          $link_text = SafeMarkup::checkPlain($base_url . '/' . $aliased_path);
+          $link_text = [
+            '#plain_text' => "$base_url/$aliased_path",
+          ];
         }
       }
       else {
-        $link_text = SafeMarkup::checkPlain($this->options['show_link_options']['link_text']);
+        $link_text = [
+          '#plain_text' => $this->options['show_link_options']['link_text'],
+        ];
       }
 
       // Link class.
@@ -192,7 +198,7 @@ class BaseUrl extends FieldPluginBase {
         'query' => $link_query,
         'language' => $language,
       ]);
-      $output = \Drupal::l($link_text, $url);
+      $output = Link::fromTextAndUrl($link_text, $url)->toString();
     }
     else {
       $output = $base_url;
