@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Definition of Drupal\views_base_url\Plugin\views\field\BaseUrl.
- */
-
 namespace Drupal\views_base_url\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -33,17 +28,17 @@ class BaseUrl extends FieldPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['show_link'] = array('default' => FALSE);
-    $options['show_link_options']['contains'] = array(
-      'link_path' => array('default' => ''),
-      'link_text' => array('default' => ''),
-      'link_class' => array('default' => ''),
-      'link_title' => array('default' => ''),
-      'link_rel' => array('default' => ''),
-      'link_fragment' => array('default' => ''),
-      'link_query' => array('default' => ''),
-      'link_target' => array('default' => ''),
-    );
+    $options['show_link'] = ['default' => FALSE];
+    $options['show_link_options']['contains'] = [
+      'link_path' => ['default' => ''],
+      'link_text' => ['default' => ''],
+      'link_class' => ['default' => ''],
+      'link_title' => ['default' => ''],
+      'link_rel' => ['default' => ''],
+      'link_fragment' => ['default' => ''],
+      'link_query' => ['default' => ''],
+      'link_target' => ['default' => ''],
+    ];
 
     return $options;
   }
@@ -52,98 +47,107 @@ class BaseUrl extends FieldPluginBase {
    * {@inheritdoc}
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
-    $form['show_link'] = array(
+    $form['show_link'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Display as link'),
       '#description' => $this->t('Show base URL as link. You can create a custom link using this option.'),
       '#default_value' => $this->options['show_link'],
-    );
+    ];
 
-    $form['show_link_options'] = array(
+    $form['show_link_options'] = [
       '#type' => 'container',
-      '#states' => array(
-        'invisible' => array(
-          ':input[type=checkbox][name="options[show_link]"]' => array('checked' => FALSE),
-        ),
-      ),
-    );
+      '#states' => [
+        'invisible' => [
+          ':input[type=checkbox][name="options[show_link]"]' => ['checked' => FALSE],
+        ],
+      ],
+    ];
 
-    $form['show_link_options']['link_path'] = array(
+    $form['show_link_options']['link_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link path'),
       '#description' => $this->t('Drupal path for this link. The base url will be prepended to this path. If nothing provided then base url will appear as link.'),
       '#default_value' => $this->options['show_link_options']['link_path'],
-    );
+    ];
 
-    $form['show_link_options']['link_text'] = array(
+    $form['show_link_options']['link_text'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link text'),
       '#description' => $this->t('Link text. If nothing provided then link path will appear as link text.'),
       '#default_value' => $this->options['show_link_options']['link_text'],
-    );
+    ];
 
-    $form['show_link_options']['link_class'] = array(
+    $form['show_link_options']['link_class'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link class'),
       '#description' => $this->t('CSS class to be applied to this link.'),
       '#default_value' => $this->options['show_link_options']['link_class'],
-    );
+    ];
 
-    $form['show_link_options']['link_title'] = array(
+    $form['show_link_options']['link_title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link title'),
       '#description' => $this->t('Title attribute for this link.'),
       '#default_value' => $this->options['show_link_options']['link_title'],
-    );
+    ];
 
-    $form['show_link_options']['link_rel'] = array(
+    $form['show_link_options']['link_rel'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link rel'),
       '#description' => $this->t('Rel attribute for this link.'),
       '#default_value' => $this->options['show_link_options']['link_rel'],
-    );
+    ];
 
-    $form['show_link_options']['link_fragment'] = array(
+    $form['show_link_options']['link_fragment'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Fragment'),
       '#description' => $this->t('Provide the ID with which you want to create fragment link.'),
       '#default_value' => $this->options['show_link_options']['link_fragment'],
-    );
+    ];
 
-    $form['show_link_options']['link_query'] = array(
+    $form['show_link_options']['link_query'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link query'),
-      '#description' => $this->t('Attach queries to the link. If there are multiple queries separate them using a space. For eg: %example1 OR %example2', array('%example1' => 'destination=node/add/page', '%example2' => 'destination=node/add/page q=some/page')),
+      '#description' => $this->t('Attach queries to the link. If there are multiple queries separate them using a space. For eg: %example1 OR %example2', [
+        '%example1' => 'destination=node/add/page',
+        '%example2' => 'destination=node/add/page q=some/page',
+      ]),
       '#default_value' => $this->options['show_link_options']['link_query'],
-    );
+    ];
 
-    $form['show_link_options']['link_target'] = array(
+    $form['show_link_options']['link_target'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Link target'),
       '#description' => $this->t('Target attribute for this link.'),
       '#default_value' => $this->options['show_link_options']['link_target'],
-    );
+    ];
 
-    // Get a list of the available fields and arguments for token replacement.
-
+    // @TODO Move the replacement patters into separate method.
+    /*
+     * Get a list of the available fields and arguments for token replacement.
+     */
     // Setup the tokens for fields.
     $previous = $this->getPreviousFieldLabels();
+    $optgroup_arguments = (string) $this->t('Arguments');
+    $optgroup_fields = (string) $this->t('Fields');
     foreach ($previous as $id => $label) {
-      $options[t('Fields')]["{{ $id }}"] = substr(strrchr($label, ":"), 2 );
+      $options[$optgroup_fields]["{{ $id }}"] = substr(strrchr($label, ":"), 2);
     }
     // Add the field to the list of options.
-    $options[t('Fields')]["{{ {$this->options['id']} }}"] = substr(strrchr($this->adminLabel(), ":"), 2 );
+    $options[$optgroup_fields]["{{ {$this->options['id']} }}"] = substr(strrchr($this->adminLabel(), ":"), 2);
 
-    $count = 0; // This lets us prepare the key as we want it printed.
     foreach ($this->view->display_handler->getHandlers('argument') as $arg => $handler) {
-      $options[t('Arguments')]['%' . ++$count] = $this->t('@argument title', array('@argument' => $handler->adminLabel()));
-      $options[t('Arguments')]['!' . $count] = $this->t('@argument input', array('@argument' => $handler->adminLabel()));
+      $options[$optgroup_arguments]["{{ arguments.$arg }}"] = $this->t('@argument title', [
+        '@argument' => $handler->adminLabel(),
+      ]);
+      $options[$optgroup_arguments]["{{ raw_arguments.$arg }}"] = $this->t('@argument input', [
+        '@argument' => $handler->adminLabel(),
+      ]);
     }
 
-    $this->documentSelfTokens($options[t('Fields')]);
+    $this->documentSelfTokens($options[$optgroup_fields]);
 
     // Default text.
-
     $output = [];
     $output[] = [
       '#markup' => '<p>' . $this->t('You must add some additional fields to this display before using this field. These fields may be marked as <em>Exclude from display</em> if you prefer. Note that due to rendering order, you cannot use fields that come after this field; if you need a field not listed here, rearrange your fields.') . '</p>',
@@ -155,15 +159,14 @@ class BaseUrl extends FieldPluginBase {
       ];
       foreach (array_keys($options) as $type) {
         if (!empty($options[$type])) {
-          $items = array();
+          $items = [];
           foreach ($options[$type] as $key => $value) {
             $items[] = $key . ' == ' . $value;
           }
-          $item_list = array(
+          $item_list = [
             '#theme' => 'item_list',
             '#items' => $items,
-            '#list_type' => $type,
-          );
+          ];
           $output[] = $item_list;
         }
       }
@@ -172,11 +175,11 @@ class BaseUrl extends FieldPluginBase {
     // run. It also has an extra div because the dependency wants to hide
     // the parent in situations like this, so we need a second div to
     // make this work.
-    $form['show_link_options']['help'] = array(
+    $form['show_link_options']['help'] = [
       '#type' => 'details',
       '#title' => $this->t('Replacement patterns'),
       '#value' => $output,
-    );
+    ];
 
     parent::buildOptionsForm($form, $form_state);
   }
@@ -188,7 +191,7 @@ class BaseUrl extends FieldPluginBase {
     global $base_url;
     global $language;
     $output = '';
-    $link_query = array();
+    $link_query = [];
     $tokens = $this->getRenderTokens($output);
 
     if ($this->options['show_link']) {
@@ -214,7 +217,7 @@ class BaseUrl extends FieldPluginBase {
       }
 
       // Link class.
-      $link_class = empty($this->options['show_link_options']['link_class']) ? array() : explode(' ', $this->options['show_link_options']['link_class']);
+      $link_class = empty($this->options['show_link_options']['link_class']) ? [] : explode(' ', $this->options['show_link_options']['link_class']);
 
       // Link query.
       if (!empty($this->options['show_link_options']['link_query'])) {
@@ -227,17 +230,17 @@ class BaseUrl extends FieldPluginBase {
       }
 
       // Create link with options.
-      $url = Url::fromUri($link_path, array(
-        'attributes' => array(
+      $url = Url::fromUri($link_path, [
+        'attributes' => [
           'class' => $link_class,
           'title' => $this->options['show_link_options']['link_title'],
           'rel' => $this->options['show_link_options']['link_rel'],
           'target' => $this->options['show_link_options']['link_target'],
-        ),
+        ],
         'fragment' => $this->options['show_link_options']['link_fragment'],
         'query' => $link_query,
         'language' => $language,
-      ));
+      ]);
       $output = \Drupal::l($link_text, $url);
     }
     else {
