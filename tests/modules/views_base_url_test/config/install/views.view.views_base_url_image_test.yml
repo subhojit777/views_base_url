@@ -8,8 +8,8 @@ dependencies:
     - node
     - user
     - views_base_url
-id: views_base_url_test
-label: 'Views base url test'
+id: views_base_url_image_test
+label: 'Views base url image test'
 module: views
 description: ''
 tag: ''
@@ -49,7 +49,7 @@ display:
           sort_asc_label: Asc
           sort_desc_label: Desc
       pager:
-        type: full
+        type: mini
         options:
           items_per_page: 10
           offset: 0
@@ -64,11 +64,8 @@ display:
             offset: false
             offset_label: Offset
           tags:
-            previous: '‹ previous'
-            next: 'next ›'
-            first: '« first'
-            last: 'last »'
-          quantity: 9
+            previous: ‹‹
+            next: ››
       style:
         type: default
       row:
@@ -76,7 +73,7 @@ display:
       fields:
         nid:
           id: nid
-          table: node
+          table: node_field_data
           field: nid
           relationship: none
           group_type: group
@@ -123,10 +120,8 @@ display:
           empty_zero: false
           hide_alter_empty: true
           click_sort_column: value
-          type: number_integer
-          settings:
-            thousand_separator: ''
-            prefix_suffix: false
+          type: number_unformatted
+          settings: {  }
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -319,7 +314,7 @@ display:
           hide_alter_empty: true
           show_link: true
           show_link_options:
-            link_path: 'node/{{ nid }}'
+            link_path: '/node/{{ nid }}'
             link_text: '{{ field_image }}'
             link_class: views-base-url-test
             link_title: '{{ title }}'
@@ -356,7 +351,7 @@ display:
           expose:
             label: ''
           granularity: second
-      title: 'Views base url test'
+      title: 'Views base url image test'
       header: {  }
       footer: {  }
       empty: {  }
@@ -364,13 +359,15 @@ display:
       arguments: {  }
       display_extenders: {  }
     cache_metadata:
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
         - url.query_args
         - 'user.node_grants:view'
         - user.permissions
-      cacheable: false
+      tags:
+        - 'config:field.storage.node.field_image'
   page_1:
     display_plugin: page
     id: page_1
@@ -378,12 +375,14 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: views-base-url-test
+      path: views-base-url-image-test
     cache_metadata:
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
         - url.query_args
         - 'user.node_grants:view'
         - user.permissions
-      cacheable: false
+      tags:
+        - 'config:field.storage.node.field_image'

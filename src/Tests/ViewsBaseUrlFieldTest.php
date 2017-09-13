@@ -5,7 +5,6 @@ namespace Drupal\views_base_url\Tests;
 use Drupal\simpletest\WebTestBase;
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Url;
-use Drupal\Component\Render\FormattableMarkup;
 
 /**
  * Basic test for views base url.
@@ -22,15 +21,6 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   protected $adminUser;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = [
-    'views_base_url_test',
-  ];
-
-  /**
    * The installation profile to use with this test.
    *
    * This test class requires the "tags" taxonomy field.
@@ -40,28 +30,58 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   protected $profile = 'standard';
 
   /**
+   * Node count.
+   *
+   * Number of nodes to be created in the tests.
+   *
+   * @var int
+   */
+  protected $nodeCount = 10;
+
+  /**
+   * Nodes.
+   *
+   * The nodes that is going to be created in the tests.
+   *
+   * @var array
+   */
+  protected $nodes;
+
+  /**
+   * Path alias manager.
+   *
+   * @var \Drupal\Core\Path\AliasManagerInterface
+   */
+  protected $pathAliasManager;
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public static $modules = [
+    'views_base_url_test',
+  ];
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
     parent::setUp();
+
     $this->adminUser = $this->drupalCreateUser([
       'create article content',
     ]);
-  }
-
-  /**
-   * Test views base url field.
-   */
-  public function testViewsBaseUrlField() {
-    global $base_url;
     $random = new Random();
-    /** @var \Drupal\Core\Render\RendererInterface $renderer */
-    $renderer = $this->container->get('renderer');
 
-    // Create 10 nodes.
+    /** @var \Drupal\Core\Path\AliasStorageInterface $path_alias_storage */
+    $path_alias_storage = $this->container->get('path.alias_storage');
+    /** @var \Drupal\Core\Path\AliasStorageInterface $path_alias_storage */
+    $this->pathAliasManager = $this->container->get('path.alias_manager');
+
+    // Create $this->nodeCount nodes.
     $this->drupalLogin($this->adminUser);
-    $this->nodes = [];
-    for ($i = 1; $i <= 10; $i++) {
+    for ($i = 1; $i <= $this->nodeCount; $i++) {
       // Create node.
       $title = $random->name();
       $image = current($this->drupalGetTestFiles('image'));
@@ -71,56 +91,68 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
       ];
       $this->drupalPostForm('node/add/article', $edit, t('Save'));
       $this->drupalPostForm(NULL, ['field_image[0][alt]' => $title], t('Save'));
-      $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
 
-      // Create path alias.
-      $path = [
-        'source' => 'node/' . $this->nodes[$i]->id(),
-        'alias' => "content/$title",
-      ];
-      \Drupal::service('path.alias_storage')->save('/node/' . $this->nodes[$i]->id(), "/content/$title");
+      $this->nodes[$i] = $this->drupalGetNodeByTitle($title);
+      $path_alias_storage->save('/node/' . $this->nodes[$i]->id(), "/content/$title");
     }
     $this->drupalLogout();
+  }
 
-    $this->drupalGet('views-base-url-test');
+  /**
+   * Test views base url field.
+   */
+  public function testViewsBaseUrlField() {
+    global $base_url;
+
+    $this->drupalGet('views-base-url-image-test');
     $this->assertResponse(200);
 
     // Check whether there are ten rows.
-    $rows = $this->xpath('//div[contains(@class,"view-views-base-url-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
-    $this->assertEqual(count($rows), 10, t('There are 10 rows'));
+    $rows = $this->xpath('//div[contains(@class,"view-views-base-url-image-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($rows), $this->nodeCount, t('There are @count rows', [
+      '@count' => $this->nodeCount,
+    ]));
 
-    // We check for at least one views result that link is properly rendered as
+    // We check for at least one views result whose link is properly rendered as
     // image.
     $node = $this->nodes[1];
     $field = $node->get('field_image');
-    $file = $field->entity;
     $value = $field->getValue();
-    $image = [
-      '#theme' => 'image',
-      '#uri' => $file->getFileUri(),
-      '#alt' => $value[0]['alt'],
-      '#attributes' => [
-        'width' => $value[0]['width'],
-        'height' => $value[0]['height'],
-      ],
-    ];
-    $url = Url::fromUri($base_url . '/' . \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $node->id()), [
+
+    $image_uri = file_url_transform_relative(file_create_url($field->entity->getFileUri()));
+    $image_alt = $value[0]['alt'];
+    $image_width = $value[0]['width'];
+    $image_height = $value[0]['height'];
+
+    $link_class = 'views-base-url-test';
+    $link_title = $node->getTitle();
+    $link_rel = 'rel-attribute';
+    $link_target = '_blank';
+    $link_path = Url::fromUri($base_url . $this->pathAliasManager->getAliasByPath('/node/' . $node->id()), [
       'attributes' => [
-        'class' => 'views-base-url-test',
-        'title' => $node->getTitle(),
-        'rel' => 'rel-attribute',
-        'target' => '_blank',
+        'class' => $link_class,
+        'title' => $link_title,
+        'rel' => $link_rel,
+        'target' => $link_target,
       ],
       'fragment' => 'new',
       'query' => [
         'destination' => 'node',
       ],
+    ])->toUriString();
+
+    $elements = $this->xpath('//a[@href=:path and @class=:class and @title=:title and @rel=:rel and @target=:target]/img[@src=:url and @width=:width and @height=:height and @alt=:alt]', [
+      ':path' => $link_path,
+      ':class' => $link_class,
+      ':title' => $link_title,
+      ':rel' => $link_rel,
+      ':target' => $link_target,
+      ':url' => $image_uri,
+      ':width' => $image_width,
+      ':height' => $image_height,
+      ':alt' => $image_alt,
     ]);
-    $link = \Drupal::l(new FormattableMarkup(":image", [
-      ':image' => str_replace("\n", NULL, $renderer->renderRoot($image)),
-    ]), $url);
-    $this->verbose($link);
-    $this->assertRaw($link, t('Views base url rendered as link image'));
+    $this->assertEqual(count($elements), 1, 'Views base url rendered as link image');
   }
 
 }
