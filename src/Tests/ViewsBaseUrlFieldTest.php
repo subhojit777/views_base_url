@@ -99,17 +99,38 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   }
 
   /**
-   * Tests views base url field.
+   * Tests views base url field when `show_link` is disabled.
    */
-  public function testViewsBaseUrlField() {
+  public function testViewsBaseUrlNoLink() {
+    global $base_url;
+
+    $this->drupalGet('views-base-url-nolink-test');
+    $this->assertResponse(200);
+
+    $elements = $this->xpath('//div[contains(@class,"view-views-base-url-no-link-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($elements), $this->nodeCount, t('There are @count rows', [
+      '@count' => $this->nodeCount,
+    ]));
+
+    $elements = $this->xpath('//div[contains(@class,"views-field-base-url")]/span[@class="field-content" and text()=:value]', [
+      ':value' => $base_url,
+    ]);
+    $this->assertEqual(count($elements), $this->nodeCount, t('Base url is displayed @count times', [
+      '@count' => $this->nodeCount,
+    ]));
+  }
+
+  /**
+   * Tests views base url field when rendered as image.
+   */
+  public function testViewsBaseUrlImage() {
     global $base_url;
 
     $this->drupalGet('views-base-url-image-test');
     $this->assertResponse(200);
 
-    // Check whether there are ten rows.
-    $rows = $this->xpath('//div[contains(@class,"view-views-base-url-image-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
-    $this->assertEqual(count($rows), $this->nodeCount, t('There are @count rows', [
+    $elements = $this->xpath('//div[contains(@class,"view-views-base-url-image-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($elements), $this->nodeCount, t('There are @count rows', [
       '@count' => $this->nodeCount,
     ]));
 
