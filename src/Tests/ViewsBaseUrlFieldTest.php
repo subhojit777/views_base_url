@@ -121,6 +121,51 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   }
 
   /**
+   * Tests views base url field when `show_link` enabled and all settings set.
+   */
+  public function testViewsBaseUrlLinkAllSettings() {
+    global $base_url;
+
+    $this->drupalGet('views-base-url-link-all-settings-test');
+    $this->assertResponse(200);
+
+    $elements = $this->xpath('//div[contains(@class,"view-views-base-url-link-all-settings-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($elements), $this->nodeCount, t('There are @count rows', [
+      '@count' => $this->nodeCount,
+    ]));
+
+    foreach ($this->nodes as $node) {
+      $link_class = 'views-base-url-test';
+      $link_title = $node->getTitle();
+      $link_text = $node->getTitle();
+      $link_rel = 'rel-attribute';
+      $link_target = '_blank';
+      $link_path = Url::fromUri($base_url . $this->pathAliasManager->getAliasByPath('/node/' . $node->id()), [
+        'attributes' => [
+          'class' => $link_class,
+          'title' => $link_title,
+          'rel' => $link_rel,
+          'target' => $link_target,
+        ],
+        'fragment' => 'new',
+        'query' => [
+          'destination' => 'node',
+        ],
+      ])->toUriString();
+
+      $elements = $this->xpath('//a[@href=:path and @class=:class and @title=:title and @rel=:rel and @target=:target and text()=:text]', [
+        ':path' => $link_path,
+        ':class' => $link_class,
+        ':title' => $link_title,
+        ':rel' => $link_rel,
+        ':target' => $link_target,
+        ':text' => $link_text,
+      ]);
+      $this->assertEqual(count($elements), 1, 'Views base url rendered as link with all settings');
+    }
+  }
+
+  /**
    * Tests views base url field when rendered as image.
    */
   public function testViewsBaseUrlImage() {
