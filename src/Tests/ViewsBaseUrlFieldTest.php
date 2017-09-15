@@ -36,7 +36,7 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
    *
    * @var int
    */
-  protected $nodeCount = 10;
+  protected $nodeCount = 5;
 
   /**
    * Nodes.
@@ -99,7 +99,7 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   }
 
   /**
-   * Test views base url field.
+   * Tests views base url field.
    */
   public function testViewsBaseUrlField() {
     global $base_url;
@@ -113,46 +113,45 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
       '@count' => $this->nodeCount,
     ]));
 
-    // We check for at least one views result whose link is properly rendered as
-    // image.
-    $node = $this->nodes[1];
-    $field = $node->get('field_image');
-    $value = $field->getValue();
+    foreach ($this->nodes as $node) {
+      $field = $node->get('field_image');
+      $value = $field->getValue();
 
-    $image_uri = file_url_transform_relative(file_create_url($field->entity->getFileUri()));
-    $image_alt = $value[0]['alt'];
-    $image_width = $value[0]['width'];
-    $image_height = $value[0]['height'];
+      $image_uri = file_url_transform_relative(file_create_url($field->entity->getFileUri()));
+      $image_alt = $value[0]['alt'];
+      $image_width = $value[0]['width'];
+      $image_height = $value[0]['height'];
 
-    $link_class = 'views-base-url-test';
-    $link_title = $node->getTitle();
-    $link_rel = 'rel-attribute';
-    $link_target = '_blank';
-    $link_path = Url::fromUri($base_url . $this->pathAliasManager->getAliasByPath('/node/' . $node->id()), [
-      'attributes' => [
-        'class' => $link_class,
-        'title' => $link_title,
-        'rel' => $link_rel,
-        'target' => $link_target,
-      ],
-      'fragment' => 'new',
-      'query' => [
-        'destination' => 'node',
-      ],
-    ])->toUriString();
+      $link_class = 'views-base-url-test';
+      $link_title = $node->getTitle();
+      $link_rel = 'rel-attribute';
+      $link_target = '_blank';
+      $link_path = Url::fromUri($base_url . $this->pathAliasManager->getAliasByPath('/node/' . $node->id()), [
+        'attributes' => [
+          'class' => $link_class,
+          'title' => $link_title,
+          'rel' => $link_rel,
+          'target' => $link_target,
+        ],
+        'fragment' => 'new',
+        'query' => [
+          'destination' => 'node',
+        ],
+      ])->toUriString();
 
-    $elements = $this->xpath('//a[@href=:path and @class=:class and @title=:title and @rel=:rel and @target=:target]/img[@src=:url and @width=:width and @height=:height and @alt=:alt]', [
-      ':path' => $link_path,
-      ':class' => $link_class,
-      ':title' => $link_title,
-      ':rel' => $link_rel,
-      ':target' => $link_target,
-      ':url' => $image_uri,
-      ':width' => $image_width,
-      ':height' => $image_height,
-      ':alt' => $image_alt,
-    ]);
-    $this->assertEqual(count($elements), 1, 'Views base url rendered as link image');
+      $elements = $this->xpath('//a[@href=:path and @class=:class and @title=:title and @rel=:rel and @target=:target]/img[@src=:url and @width=:width and @height=:height and @alt=:alt]', [
+        ':path' => $link_path,
+        ':class' => $link_class,
+        ':title' => $link_title,
+        ':rel' => $link_rel,
+        ':target' => $link_target,
+        ':url' => $image_uri,
+        ':width' => $image_width,
+        ':height' => $image_height,
+        ':alt' => $image_alt,
+      ]);
+      $this->assertEqual(count($elements), 1, 'Views base url rendered as link image');
+    }
   }
 
 }
