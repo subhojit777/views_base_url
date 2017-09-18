@@ -192,6 +192,27 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   }
 
   /**
+   * Tests views base url field when `show_link` enabled and no `link_path`.
+   */
+  public function testViewsBaseUrlLinkNoLinkPath() {
+    global $base_url;
+
+    $this->drupalGet('views-base-url-link-no-link-path-test');
+    $this->assertResponse(200);
+
+    $elements = $this->xpath('//div[contains(@class,"view-views-base-url-link-no-link-path-test")]/div[@class="view-content"]/div[contains(@class,"views-row")]');
+    $this->assertEqual(count($elements), $this->nodeCount, t('There are @count rows', [
+      '@count' => $this->nodeCount,
+    ]));
+
+    $elements = $this->xpath('//a[@href=:path and text()=:text]', [
+      ':path' => $base_url,
+      ':text' => Url::fromUri($base_url)->toUriString(),
+    ]);
+    $this->assertEqual(count($elements), $this->nodeCount, 'Views base url rendered as link with link path not set');
+  }
+
+  /**
    * Tests views base url field when rendered as image.
    */
   public function testViewsBaseUrlImage() {
