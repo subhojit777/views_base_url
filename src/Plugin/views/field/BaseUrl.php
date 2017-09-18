@@ -141,45 +141,36 @@ class BaseUrl extends FieldPluginBase {
   public function render(ResultRow $values) {
     global $base_url;
     global $language;
-    $output = '';
-    $link_query = [];
-    $tokens = $this->getRenderTokens($output);
 
     if ($this->options['show_link']) {
-      if (!empty($this->options['show_link_options']['link_path'])) {
-        $aliased_path = $this->viewsTokenReplace($this->options['show_link_options']['link_path'], $tokens);
-        $aliased_path = \Drupal::service('path.alias_manager')->getAliasByPath("/$aliased_path");
-      }
+      $tokens = $this->getRenderTokens('');
+      $link_query = [];
 
       // Link path.
-      $link_path = empty($aliased_path) ? $base_url : "$base_url/$aliased_path";
-
-      // Link text.
-      if (empty($this->options['show_link_options']['link_text'])) {
-        if (empty($aliased_path)) {
-          $link_text = [
-            '#plain_text' => $base_url,
-          ];
-        }
-        else {
-          $link_text = [
-            '#plain_text' => "$base_url/$aliased_path",
-          ];
-        }
+      if (!empty($this->options['show_link_options']['link_path'])) {
+        $aliased_path = $this->viewsTokenReplace($this->options['show_link_options']['link_path'], $tokens);
+        $aliased_path = \Drupal::service('path.alias_manager')->getAliasByPath($aliased_path);
+        $link_path = "$base_url$aliased_path";
       }
       else {
+        $link_path = $base_url;
+      }
+
+      // Link text.
+      if (!empty($this->options['show_link_options']['link_text'])) {
         $link_text = [
           '#plain_text' => $this->options['show_link_options']['link_text'],
         ];
       }
-
-      // Link class.
-      $link_class = empty($this->options['show_link_options']['link_class']) ? [] : explode(' ', $this->options['show_link_options']['link_class']);
+      else {
+        $link_text = [
+          '#plain_text' => $link_path,
+        ];
+      }
 
       // Link query.
       if (!empty($this->options['show_link_options']['link_query'])) {
         $queries = explode(' ', $this->options['show_link_options']['link_query']);
-
         foreach ($queries as $query) {
           $param = explode('=', $query);
           $link_query[$param[0]] = $param[1];
@@ -189,7 +180,7 @@ class BaseUrl extends FieldPluginBase {
       // Create link with options.
       $url = Url::fromUri($link_path, [
         'attributes' => [
-          'class' => $link_class,
+          'class' => explode(' ', $this->options['show_link_options']['link_class']),
           'title' => $this->options['show_link_options']['link_title'],
           'rel' => $this->options['show_link_options']['link_rel'],
           'target' => $this->options['show_link_options']['link_target'],
@@ -198,14 +189,17 @@ class BaseUrl extends FieldPluginBase {
         'query' => $link_query,
         'language' => $language,
       ]);
-      $output = Link::fromTextAndUrl($link_text, $url)->toString();
+
+      // Replace token with values and return it as output.
+      return [
+        '#markup' => $this->viewsTokenReplace(Link::fromTextAndUrl($link_text, $url)->toString(), $tokens),
+      ];
     }
     else {
-      $output = $base_url;
+      return [
+        '#plain_text' => $base_url,
+      ];
     }
-
-    // Replace token with values and return it as output.
-    return $this->viewsTokenReplace($output, $tokens);
   }
 
   /**
