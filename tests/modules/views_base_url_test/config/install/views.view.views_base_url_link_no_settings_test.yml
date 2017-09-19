@@ -5,8 +5,8 @@ dependencies:
     - node
     - user
     - views_base_url
-id: views_base_url_no_link_test
-label: 'Views base url no link test'
+id: views_base_url_link_no_settings_test
+label: 'Views base url link no settings test'
 module: views
 description: ''
 tag: ''
@@ -116,16 +116,16 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          show_link: false
+          show_link: true
           show_link_options:
-            link_path: '/node/{{ nid }}'
-            link_text: '{{ field_image }}'
-            link_class: views-base-url-test
-            link_title: '{{ title }}'
-            link_rel: rel-attribute
-            link_fragment: new
-            link_query: destination=node
-            link_target: _blank
+            link_path: ''
+            link_text: ''
+            link_class: ''
+            link_title: ''
+            link_rel: ''
+            link_fragment: ''
+            link_query: ''
+            link_target: ''
           plugin_id: base_url
       filters:
         status:
@@ -155,7 +155,7 @@ display:
           expose:
             label: ''
           granularity: second
-      title: 'Views base url image test'
+      title: 'Views base url link link no settings test'
       header: {  }
       footer: {  }
       empty: {  }
@@ -177,7 +177,7 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: views-base-url-nolink-test
+      path: views-base-url-link-no-settings-test
     cache_metadata:
       max-age: -1
       contexts:
