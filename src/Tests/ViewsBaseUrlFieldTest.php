@@ -283,6 +283,13 @@ class ViewsBaseUrlFieldTest extends WebTestBase {
   }
 
   /**
+   * Tests views base url field when `show_link` enabled and no `link_query`.
+   */
+  public function testViewsBaseUrlLinkNoLinkQuery() {
+    $this->assertViewsBaseUrlLinkNoSettings();
+  }
+
+  /**
    * Tests views base url field when rendered as image.
    */
   public function testViewsBaseUrlImage() {
