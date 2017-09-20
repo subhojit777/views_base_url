@@ -74,8 +74,8 @@ before_script:
   - drupal-ti before_script
 
 script:
-  - phpcs --standard=Drupal --extensions=php,module,inc,install,profile,theme,css,yml src tests views_base_url.views.inc views_base_url.module views_base_url.info.yml
-  - phpcs --standard=DrupalPractice --extensions=php,module,inc,install,profile,theme,css,yml src tests views_base_url.views.inc views_base_url.module views_base_url.info.yml
+  - phpcs --standard=Drupal --extensions=php,module,inc,install,profile,theme,css,yml src tests views_base_url.views.inc views_base_url.info.yml
+  - phpcs --standard=DrupalPractice --extensions=php,module,inc,install,profile,theme,css,yml src tests views_base_url.views.inc views_base_url.info.yml
   - travis_wait $TRAVIS_WAIT drupal-ti script
 
 after_script:
